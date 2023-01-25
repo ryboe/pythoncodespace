@@ -1,0 +1,34 @@
+name: Weekly Release
+
+# Build a fresh image every week.
+on:
+  schedule:
+    - cron: '0 14 * * 1' # run at 9am eastern US time every Monday
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_upload_image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Build and Push
+        uses: docker/build-push-action@v3
+        with:
+          platforms: linux/amd64 # GitHub only offers AMD64 codespaces
+          pull: true
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          # mode=max means "cache everything possible". This ensures maximum
+          # use of the cache, but will use up GitHub's 10 GB cache size limit
+          # faster.
+          cache-to: type=gha,mode=max
