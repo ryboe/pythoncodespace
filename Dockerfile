@@ -20,6 +20,9 @@ USER vscode
 RUN mkdir -p /home/vscode/.local/bin
 ENV PATH="/home/vscode/.local/bin:$PATH"
 
+# Remove the shell configs from the base image.
+RUN rm -rf ~/.bash_logout ~/.bashrc ~/.oh-my-zsh ~/.profile
+
 # Install the latest gh CLI tool. The first request fetches the URL for the
 # latest release tarball. The second request downloads the tarball.
 RUN <<-EOT
