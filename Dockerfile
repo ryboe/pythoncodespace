@@ -6,7 +6,8 @@ LABEL org.opencontainers.image.authors="Ryan Boehning <1250684+ryboe@users.norep
 
 RUN <<-EOT
   apt update
-  DEBIAN_FRONTEND=noninteractive apt full-upgrade -y --no-install-recommends
+  apt full-upgrade
+  rm -rf /var/lib/apt/lists/*
 EOT
 
 # Enable pipefail to catch errors.
@@ -20,7 +21,7 @@ USER vscode
 RUN mkdir -p /home/vscode/.local/bin
 ENV PATH="/home/vscode/.local/bin:$PATH"
 
-# Remove the shell configs from the base image.
+# Remove shell configs from the base image.
 RUN rm -rf ~/.bash_logout ~/.bashrc ~/.oh-my-zsh ~/.profile
 
 # Install the latest gh CLI tool. The first request fetches the URL for the
@@ -32,13 +33,10 @@ RUN <<-EOT
   tar -xvz -C /home/vscode/.local/ --strip-components=1
 EOT
 
+# Install poetry and enable its completions.
 RUN <<-EOT
   curl -sSL https://install.python-poetry.org | python -
-  # Enable poetry completions.
   mkdir -p ~/.zfunc
   poetry completions zsh > ~/.zfunc/_poetrywhic
   fpath+=~/.zfunc
-  autoload -Uz compinit
-  compinit
-  compdump
 EOT
