@@ -6,7 +6,7 @@ LABEL org.opencontainers.image.authors="Ryan Boehning <1250684+ryboe@users.norep
 
 RUN <<-EOT
   apt update
-  apt full-upgrade -y --no-install-recommends
+  DEBIAN_FRONTEND=noninteractive apt full-upgrade -y --no-install-recommends
 EOT
 
 # Enable pipefail to catch errors.
