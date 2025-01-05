@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG PYTHON_VERSION="3.12"
+ARG PYTHON_VERSION="3.13"
 FROM mcr.microsoft.com/devcontainers/python:${PYTHON_VERSION}
 
 LABEL org.opencontainers.image.authors="Ryan Boehning <1250684+ryboe@users.noreply.github.com>"
