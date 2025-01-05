@@ -8,9 +8,17 @@ on:
     branches:
       - main
 
+env:
+  LATEST_PYTHON_VERSION: "3.13"
+
 jobs:
   build_and_upload_image:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.12"
+          - "3.13"
     steps:
       - name: Set up Docker buildx
         uses: docker/setup-buildx-action@v3
@@ -20,15 +28,32 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
-      - name: Build and Push
-        uses: docker/build-push-action@v5
+      - name: Build and Push Image
+        if: ${{ matrix.python-version != env.LATEST_PYTHON_VERSION }}
+        uses: docker/build-push-action@v6
         with:
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python-version }}
           platforms: linux/amd64 # GitHub only offers AMD64 codespaces
           pull: true
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ github.repository }}:${{ matrix.python-version }}
           cache-from: type=gha
           # mode=max means "cache everything possible". This ensures maximum
           # use of the cache, but will use up GitHub's 10 GB cache size limit
           # faster.
           cache-to: type=gha,mode=max
+      - name: Build and Push 'latest' Image
+        if: ${{ matrix.python-version == env.LATEST_PYTHON_VERSION }}
+        uses: docker/build-push-action@v6
+        with:
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python-version }}
+          platforms: linux/amd64 # GitHub only offers AMD64 codespaces
+          pull: true
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ matrix.python-version }},ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          # mode=max means "cache everything possible". This ensures maximum
+          # use of the cache, but will use up GitHub's 10 GB cache size limit
+          # faster.
