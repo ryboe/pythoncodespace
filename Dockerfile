@@ -5,14 +5,15 @@ FROM mcr.microsoft.com/devcontainers/python:${PYTHON_VERSION}
 LABEL org.opencontainers.image.authors="Ryan Boehning <1250684+ryboe@users.noreply.github.com>"
 
 RUN <<-EOT
+    mkdir -p --mode=755 /etc/apt/keyrings
+    wget --no-verbose --output-document=/etc/apt/keyrings/githubcli-archive-keyring.gpg https://cli.github.com/packages/githubcli-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list
     apt update
     apt full-upgrade
+    apt install gh --yes
     apt clean
     rm -rf /var/lib/apt/lists/*
 EOT
-
-# Enable pipefail to catch errors.
-SHELL ["/bin/zsh", "-o", "pipefail", "-c"]
 
 # Change the vscode user's default shell to zsh.
 RUN sed -i 's/\/home\/vscode:\/bin\/bash/\/home\/vscode:\/bin\/zsh/' /etc/passwd
@@ -21,22 +22,14 @@ USER vscode
 # Remove shell configs from the base image.
 RUN rm -rf ~/.bash_logout ~/.bashrc ~/.oh-my-zsh ~/.profile
 
-# Create local bin directory for gh, poetry, and other command line tools.
-RUN mkdir -p /home/vscode/.local/bin
+# Enable pipefail to catch poetry install errors.
+SHELL ["/bin/zsh", "-o", "pipefail", "-c"]
 
 # Install poetry and enable its completions.
 RUN <<-EOT
+    mkdir -p /home/vscode/.local/bin
     curl -sSL https://install.python-poetry.org | python -
     mkdir -p ~/.zfunc
     poetry completions zsh > ~/.zfunc/_poetrywhic
     fpath+=~/.zfunc
-EOT
-
-# Install the latest gh CLI tool. The first request fetches the URL for the
-# latest release tarball. The second request downloads the tarball.
-RUN <<-EOT
-    wget --quiet --timeout=30 --output-document=- 'https://api.github.com/repos/cli/cli/releases/latest' |
-    jq -r ".assets[] | select(.name | test(\"gh_.*?_linux_amd64.tar.gz\")).browser_download_url" |
-    wget --quiet --timeout=180 --input-file=- --output-document=- |
-    tar -xvz -C ~/.local/bin --strip-components=2
 EOT
