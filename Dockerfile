@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG PYTHON_VERSION="3.13"
+ARG PYTHON_VERSION="3.14"
 FROM mcr.microsoft.com/devcontainers/python:${PYTHON_VERSION}
 
 LABEL org.opencontainers.image.authors="Ryan Boehning <1250684+ryboe@users.noreply.github.com>"
@@ -20,16 +20,10 @@ RUN sed -i 's/\/home\/vscode:\/bin\/bash/\/home\/vscode:\/bin\/zsh/' /etc/passwd
 USER vscode
 
 # Remove shell configs from the base image.
-RUN rm -rf ~/.bash_logout ~/.bashrc ~/.oh-my-zsh ~/.profile
+RUN rm -rf ~/.bash_logout ~/.bashrc ~/.profile
 
-# Enable pipefail to catch poetry install errors.
+# Enable pipefail to catch uv install errors below.
 SHELL ["/bin/zsh", "-o", "pipefail", "-c"]
 
-# Install poetry and enable its completions.
-RUN <<-EOT
-    mkdir -p /home/vscode/.local/bin
-    curl -sSL https://install.python-poetry.org | python -
-    mkdir -p ~/.zfunc
-    poetry completions zsh > ~/.zfunc/_poetrywhic
-    fpath+=~/.zfunc
-EOT
+# Install uv.
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
