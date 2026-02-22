@@ -10,8 +10,8 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - "3.12"
           - "3.13"
+          - "3.14"
     steps:
       - name: Set up Docker buildx
         uses: docker/setup-buildx-action@v3
