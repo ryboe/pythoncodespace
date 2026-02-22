@@ -1,0 +1,20 @@
+name: Clean Up Untagged Images
+
+on:
+  schedule:
+    - cron: 0 0 * * 0 # run at midnight every sunday
+  workflow_dispatch:
+
+jobs:
+  cleanup_untagged_images:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Delete untagged images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ${{ github.event.repository.name }}
+          package-type: container
+          delete-only-untagged-versions: true
+          min-versions-to-keep: 0
